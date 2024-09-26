@@ -1,12 +1,13 @@
 .chatbox-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 300px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+    position: fixed; /* Fixes the chatbox to the viewport */
+    bottom: 20px; /* Positions it 20px from the bottom of the viewport */
+    right: 20px; /* Positions it 20px from the right side of the viewport */
+    width: 300px; /* Set a fixed width for the chatbox */
+    background-color: #fff; /* White background */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Add shadow for visibility */
+    z-index: 1000; /* High z-index to ensure it's on top of other elements */
+    overflow: hidden; /* Prevents overflow */
   }
   
   .chatbox-header {
@@ -18,8 +19,8 @@
   }
   
   .chatbox-body {
-    max-height: 400px;
-    overflow-y: auto;
+    max-height: 400px; /* Limits height, allowing scroll if content is large */
+    overflow-y: auto; /* Enables vertical scrolling */
     padding: 10px;
   }
   
