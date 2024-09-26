@@ -6,59 +6,50 @@ const ChatBox = () => {
   const [audioURL, setAudioURL] = useState(null);
   const [conversation, setConversation] = useState([]);
   const [chatVisible, setChatVisible] = useState(false);
-  const TELEGRAM_CHAT_ID = '8003145679'; // Your Telegram Chat ID
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const TELEGRAM_CHAT_ID = '8003145679';
   const TELEGRAM_BOT_TOKEN = '7212413605:AAFMvGfgtilWWe9mzsrJ2Pbv35olXiVi6X0'; // Replace with your bot token
 
   const handleStartSpeaking = () => {
-    const audio = new Audio('https://sanstv.ru/test/audio/test.mp3'); // Use the correct URL
-    audio.play().catch(error => console.error('Error playing audio:', error)); // Handle any errors
+    const audio = new Audio('https://sanstv.ru/test/audio/test.mp3');
+    audio.play().catch(error => console.error('Error playing audio:', error));
     audio.onended = () => {
-        setChatVisible(true); // Show chatbox after audio ends
+      setChatVisible(true);
     };
-};
+  };
 
-
-  const handleRecordStart = () => {
-    setIsRecording(true);
+  const startRecording = () => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mpeg' });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/mpeg' });
+      setMediaRecorder(recorder);
       const audioChunks = [];
 
-      mediaRecorder.ondataavailable = (event) => {
+      recorder.ondataavailable = (event) => {
         audioChunks.push(event.data);
       };
 
-      mediaRecorder.onstop = () => {
+      recorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
         const audioUrl = URL.createObjectURL(audioBlob);
         setAudioURL(audioUrl);
 
-        // Update conversation
+        // Update conversation with recorded audio
         setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
 
-        // Send audio to Telegram
+        // Optionally send audio to Telegram
         sendAudioToTelegram(audioBlob);
-
-        // Play static response after recording
-        const responseAudio = new Audio('https://sanstv.ru/test/audio/test.mp3');
-        responseAudio.play();
-        responseAudio.onended = () => {
-          setConversation((prev) => [...prev, { type: 'bot', url: responseAudio.src }]);
-        };
       };
 
-      mediaRecorder.start();
-
-      const stopRecording = () => {
-        if (isRecording) {
-          mediaRecorder.stop();
-          setIsRecording(false);
-        }
-      };
-
-      document.addEventListener('mouseup', stopRecording, { once: true });
-      setTimeout(stopRecording, 5000); // Auto stop after 5 seconds
+      recorder.start();
+      setIsRecording(true);
     });
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
   };
 
   const sendAudioToTelegram = (audioBlob) => {
@@ -81,10 +72,18 @@ const ChatBox = () => {
       .catch(error => console.error('Error sending audio to Telegram:', error));
   };
 
+  const handleSendAudio = () => {
+    if (audioURL) {
+      sendAudioToTelegram(audioURL);
+      // Reset audio URL after sending
+      setAudioURL(null);
+    }
+  };
+
   return (
     <div className="chatbox-container">
       <button onClick={handleStartSpeaking}>Start Speaking</button>
-      
+
       {chatVisible && (
         <div className="chatbox">
           <div className="chatbox-header">Chat with us!</div>
@@ -96,12 +95,14 @@ const ChatBox = () => {
             ))}
           </div>
           <div className="chatbox-footer">
-            <button
-              onMouseDown={handleRecordStart}
-              disabled={isRecording}
-            >
-              {isRecording ? 'Recording...' : 'Hold to Speak'}
-            </button>
+            {!isRecording ? (
+              <button onClick={startRecording}>Start Recording</button>
+            ) : (
+              <button onClick={stopRecording}>Stop Recording</button>
+            )}
+            {audioURL && (
+              <button onClick={handleSendAudio}>Send Audio</button>
+            )}
           </div>
         </div>
       )}
