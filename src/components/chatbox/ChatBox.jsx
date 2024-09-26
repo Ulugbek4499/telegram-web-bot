@@ -10,12 +10,13 @@ const ChatBox = () => {
   const TELEGRAM_BOT_TOKEN = '7212413605:AAFMvGfgtilWWe9mzsrJ2Pbv35olXiVi6X0'; // Replace with your bot token
 
   const handleStartSpeaking = () => {
-    const audio = new Audio('https://sanstv.ru/test/audio/test.mp3');
-    audio.play();
+    const audio = new Audio('https://sanstv.ru/test/audio/test.mp3'); // Use the correct URL
+    audio.play().catch(error => console.error('Error playing audio:', error)); // Handle any errors
     audio.onended = () => {
-      setChatVisible(true); // Show chatbox after audio ends
+        setChatVisible(true); // Show chatbox after audio ends
     };
-  };
+};
+
 
   const handleRecordStart = () => {
     setIsRecording(true);
