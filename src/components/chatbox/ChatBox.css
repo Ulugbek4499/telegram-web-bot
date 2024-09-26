@@ -1,17 +1,35 @@
-.chatbox {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 10px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+.chatbox-container {
+    margin: 20px;
+    text-align: center;
   }
   
-  .chatbox button {
-    margin: 5px 0;
+  .chatbox {
+    display: none; /* Initially hidden, shown after intro audio */
+    border: 1px solid #ccc;
     padding: 10px;
-    font-size: 16px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: #f9f9f9;
+  }
+  
+  .messages {
+    margin-bottom: 20px;
+  }
+  
+  .message.user {
+    text-align: right;
+    background-color: #e1ffc7;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .message.website {
+    text-align: left;
+    background-color: #d3d3d3;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
   }
   
