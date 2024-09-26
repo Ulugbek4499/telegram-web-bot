@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import Card from './components/card/card';
 import Cart from './components/cart/cart';
+import ChatBox from './components/chatbox/ChatBox'; 
 import { getData } from './constants/db';
 
 const courses = getData();
@@ -83,6 +84,10 @@ const App = () => {
 	return (
 		<>
 			<h1 className='heading'>Sammi kurslar</h1>
+
+			 {/* ChatBox Component */}
+			 <ChatBox />
+
 			<Cart cartItems={cartItems} onCheckout={onCheckout} />
 			<div className='cards__container'>
 				{courses.map(course => (
