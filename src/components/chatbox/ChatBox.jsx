@@ -7,7 +7,7 @@ const ChatBox = () => {
   const [conversation, setConversation] = useState([]);
   const [chatVisible, setChatVisible] = useState(false);
   const TELEGRAM_CHAT_ID = '8003145679'; // Your Telegram Chat ID
-  const TELEGRAM_BOT_TOKEN = '7637628399:AAFjujJ8V6RQpI825l-5Wl_SlQi_1R4AW_E'; // Replace with your bot token
+  const TELEGRAM_BOT_TOKEN = '7212413605:AAFMvGfgtilWWe9mzsrJ2Pbv35olXiVi6X0'; // Replace with your bot token
 
   const handleStartSpeaking = () => {
     const audio = new Audio('https://sanstv.ru/test/audio/test.mp3');
