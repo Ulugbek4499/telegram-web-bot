@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './chatbox.css';
+import './ChatBox.css';
 
 const ChatBox = () => {
   const [isRecording, setIsRecording] = useState(false);
