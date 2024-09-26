@@ -20,7 +20,7 @@ const ChatBox = () => {
 
   const startRecording = () => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/mpeg' });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' }); // Changed to 'audio/webm'
       setMediaRecorder(recorder);
       const audioChunks = [];
 
@@ -29,7 +29,7 @@ const ChatBox = () => {
       };
 
       recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Changed to 'audio/webm'
         const audioUrl = URL.createObjectURL(audioBlob);
         setAudioURL(audioUrl);
 
@@ -42,7 +42,7 @@ const ChatBox = () => {
 
       recorder.start();
       setIsRecording(true);
-    });
+    }).catch(error => console.error('Error accessing media devices:', error));
   };
 
   const stopRecording = () => {
@@ -55,7 +55,7 @@ const ChatBox = () => {
   const sendAudioToTelegram = (audioBlob) => {
     const formData = new FormData();
     formData.append('chat_id', TELEGRAM_CHAT_ID);
-    formData.append('audio', audioBlob, `recorded_audio_${Date.now()}.mp3`);
+    formData.append('audio', audioBlob, `recorded_audio_${Date.now()}.webm`); // Changed to .webm extension
 
     fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendAudio`, {
       method: 'POST',
