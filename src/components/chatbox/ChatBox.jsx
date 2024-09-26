@@ -1,109 +1,111 @@
-import './ChatBox.css';
 import React, { useState } from 'react';
+import './chatbox.css';
 
 const ChatBox = () => {
-    const [isRecording, setIsRecording] = useState(false);
-    const [audioURL, setAudioURL] = useState(null);
-    const [messages, setMessages] = useState([]); // To hold chat conversation
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioURL, setAudioURL] = useState(null);
+  const [conversation, setConversation] = useState([]);
+  const [chatVisible, setChatVisible] = useState(false);
+  const TELEGRAM_CHAT_ID = '8003145679'; // Your Telegram Chat ID
+  const TELEGRAM_BOT_TOKEN = '7637628399:AAFjujJ8V6RQpI825l-5Wl_SlQi_1R4AW_E'; // Replace with your bot token
 
-    const handleStartSpeaking = () => {
-        const audio = new Audio('/audio/IntroAudio.mp3'); // Replace with correct path to intro audio
-        audio.play();
+  const handleStartSpeaking = () => {
+    const audio = new Audio('https://sanstv.ru/test/audio/test.mp3');
+    audio.play();
+    audio.onended = () => {
+      setChatVisible(true); // Show chatbox after audio ends
+    };
+  };
 
-        // Once the intro audio ends, show the chatbox
-        audio.onended = () => {
-            document.querySelector('.chatbox').style.display = 'block';
+  const handleRecordStart = () => {
+    setIsRecording(true);
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mpeg' });
+      const audioChunks = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setAudioURL(audioUrl);
+
+        // Update conversation
+        setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
+
+        // Send audio to Telegram
+        sendAudioToTelegram(audioBlob);
+
+        // Play static response after recording
+        const responseAudio = new Audio('https://sanstv.ru/test/audio/test.mp3');
+        responseAudio.play();
+        responseAudio.onended = () => {
+          setConversation((prev) => [...prev, { type: 'bot', url: responseAudio.src }]);
         };
-    };
+      };
 
-    const handleRecordStart = () => {
-        setIsRecording(true);
-        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mpeg' });
-            const audioChunks = [];
+      mediaRecorder.start();
 
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                setAudioURL(audioUrl);
-                
-                // Add the user's recorded message to chatbox
-                setMessages(prevMessages => [...prevMessages, { sender: 'user', audio: audioUrl }]);
-
-                // Play the next static response audio after the user records
-                const nextAudio = new Audio('/audio/what-is-next.mp3'); // Replace with the correct path to "What is next" audio
-                nextAudio.play();
-
-                // Add website response after next audio ends
-                nextAudio.onended = () => {
-                    setMessages(prevMessages => [...prevMessages, { sender: 'website', audio: '/audio/what-is-next.mp3' }]);
-                };
-
-                saveAudioLocally(audioBlob); // Save the recorded audio
-            };
-
-            mediaRecorder.start();
-            window.mediaRecorder = mediaRecorder; // Store the recorder globally to stop it later
-        });
-    };
-
-    const handleRecordStop = () => {
-        if (window.mediaRecorder) {
-            window.mediaRecorder.stop();
-            setIsRecording(false);
+      const stopRecording = () => {
+        if (isRecording) {
+          mediaRecorder.stop();
+          setIsRecording(false);
         }
-    };
+      };
 
-    // Function to save audio locally (simulate saving to "D" drive)
-    const saveAudioLocally = (audioBlob) => {
-        const fileReader = new FileReader();
-        fileReader.readAsArrayBuffer(audioBlob);
-        fileReader.onloadend = () => {
-            const arrayBuffer = fileReader.result;
-            const filePath = "D:\\TarteebSpeechTest\\user-recorded-audio.mp3"; // Static file path, update as necessary
-            
-            // Simulate Node.js file system (fs) functionality for saving locally
-            const fs = window.require('fs'); // Assuming Electron or similar environment
-            
-            fs.writeFile(filePath, Buffer.from(new Uint8Array(arrayBuffer)), (err) => {
-                if (err) {
-                    console.error('Error saving the audio file:', err);
-                } else {
-                    console.log('Audio saved successfully at', filePath);
-                }
-            });
-        };
-    };
+      document.addEventListener('mouseup', stopRecording, { once: true });
+      setTimeout(stopRecording, 5000); // Auto stop after 5 seconds
+    });
+  };
 
-    return (
-        <div className="chatbox-container">
-            <button onClick={handleStartSpeaking}>Start Speaking</button>
+  const sendAudioToTelegram = (audioBlob) => {
+    const formData = new FormData();
+    formData.append('chat_id', TELEGRAM_CHAT_ID);
+    formData.append('audio', audioBlob, `recorded_audio_${Date.now()}.mp3`);
 
-            <div className="chatbox">
-                <div className="messages">
-                    {messages.map((message, index) => (
-                        <div key={index} className={`message ${message.sender}`}>
-                            <audio src={message.audio} controls />
-                        </div>
-                    ))}
-                </div>
+    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendAudio`, {
+      method: 'POST',
+      body: formData,
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          console.log('Audio sent successfully to Telegram!');
+        } else {
+          console.error('Failed to send audio to Telegram:', data);
+        }
+      })
+      .catch(error => console.error('Error sending audio to Telegram:', error));
+  };
 
-                <button 
-                    onMouseDown={handleRecordStart} 
-                    onMouseUp={handleRecordStop} 
-                    disabled={isRecording}
-                >
-                    {isRecording ? 'Recording...' : 'Hold to Speak'}
-                </button>
-
-                {audioURL && <audio src={audioURL} controls />}
-            </div>
+  return (
+    <div className="chatbox-container">
+      <button onClick={handleStartSpeaking}>Start Speaking</button>
+      
+      {chatVisible && (
+        <div className="chatbox">
+          <div className="chatbox-header">Chat with us!</div>
+          <div className="chatbox-body">
+            {conversation.map((message, index) => (
+              <div key={index} className={`message ${message.type}`}>
+                <audio src={message.url} controls />
+              </div>
+            ))}
+          </div>
+          <div className="chatbox-footer">
+            <button
+              onMouseDown={handleRecordStart}
+              disabled={isRecording}
+            >
+              {isRecording ? 'Recording...' : 'Hold to Speak'}
+            </button>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export default ChatBox;
