@@ -3,10 +3,12 @@ import './ChatBox.css';
 
 const ChatBox = () => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
   const [conversation, setConversation] = useState([]);
   const [chatVisible, setChatVisible] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioChunks, setAudioChunks] = useState([]);
   const TELEGRAM_CHAT_ID = '8003145679';
   const TELEGRAM_BOT_TOKEN = '7212413605:AAFMvGfgtilWWe9mzsrJ2Pbv35olXiVi6X0'; // Replace with your bot token
 
@@ -22,33 +24,44 @@ const ChatBox = () => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
       const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       setMediaRecorder(recorder);
-      const audioChunks = [];
-
       recorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
+        setAudioChunks((prevChunks) => [...prevChunks, event.data]);
       };
-
-      recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setAudioURL(audioUrl);
-
-        // Update conversation with recorded audio
-        setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
-
-        // Optionally send audio to Telegram
-        sendAudioToTelegram(audioBlob);
-      };
-
       recorder.start();
       setIsRecording(true);
+      setIsPaused(false);
     }).catch(error => console.error('Error accessing media devices:', error));
   };
 
+  const pauseRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+      setIsPaused(true);
+    }
+  };
+
+  const continueRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'paused') {
+      mediaRecorder.resume();
+      setIsPaused(false);
+    }
+  };
+
   const stopRecording = () => {
-    if (mediaRecorder && isRecording) {
+    if (mediaRecorder && (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')) {
       mediaRecorder.stop();
       setIsRecording(false);
+      setIsPaused(false);
+
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setAudioURL(audioUrl);
+
+      // Update conversation with recorded audio
+      setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
+      
+      // Optionally send audio to Telegram
+      // sendAudioToTelegram(audioBlob); // Comment this if you want to send only after pressing Send Audio button
     }
   };
 
@@ -74,9 +87,11 @@ const ChatBox = () => {
 
   const handleSendAudio = () => {
     if (audioURL) {
-      sendAudioToTelegram(audioURL);
-      // Reset audio URL after sending
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      sendAudioToTelegram(audioBlob);
+      // Reset audio URL and chunks after sending
       setAudioURL(null);
+      setAudioChunks([]);
     }
   };
 
@@ -97,14 +112,30 @@ const ChatBox = () => {
             ))}
           </div>
           <div className="chatbox-footer">
-            {!isRecording ? (
+            {!isRecording && !audioURL && (
               <button className="chatbox-button" onClick={startRecording}>
                 Start Recording
               </button>
-            ) : (
-              <button className="chatbox-button" onClick={stopRecording}>
-                Stop Recording
-              </button>
+            )}
+            {isRecording && !isPaused && (
+              <>
+                <button className="chatbox-button" onClick={pauseRecording}>
+                  Pause
+                </button>
+                <button className="chatbox-button" onClick={stopRecording}>
+                  Stop Recording
+                </button>
+              </>
+            )}
+            {isRecording && isPaused && (
+              <>
+                <button className="chatbox-button" onClick={continueRecording}>
+                  Continue
+                </button>
+                <button className="chatbox-button" onClick={stopRecording}>
+                  Stop Recording
+                </button>
+              </>
             )}
             {audioURL && (
               <button className="chatbox-button" onClick={handleSendAudio}>
