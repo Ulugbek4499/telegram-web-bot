@@ -12,7 +12,7 @@ const ChatBox = () => {
 
   const handleStartSpeaking = () => {
     const audio = new Audio('https://sanstv.ru/test/audio/test.mp3');
-
+    audio.play().catch(error => console.error('Error playing audio:', error));
     audio.onended = () => {
       setChatVisible(true);
     };
