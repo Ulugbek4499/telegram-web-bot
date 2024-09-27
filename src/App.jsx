@@ -84,7 +84,6 @@ const App = () => {
 	return (
 		<>
 			<h1 className='heading'>Sammi kurslar</h1>
-
 			 {/* ChatBox Component */}
 			 <ChatBox />
 

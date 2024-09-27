@@ -12,7 +12,7 @@ const ChatBox = () => {
 
   const handleStartSpeaking = () => {
     const audio = new Audio('https://sanstv.ru/test/audio/test.mp3');
-    audio.play().catch(error => console.error('Error playing audio:', error));
+
     audio.onended = () => {
       setChatVisible(true);
     };
@@ -20,7 +20,7 @@ const ChatBox = () => {
 
   const startRecording = () => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' }); // Changed to 'audio/webm'
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       setMediaRecorder(recorder);
       const audioChunks = [];
 
@@ -29,7 +29,7 @@ const ChatBox = () => {
       };
 
       recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Changed to 'audio/webm'
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const audioUrl = URL.createObjectURL(audioBlob);
         setAudioURL(audioUrl);
 
@@ -55,7 +55,7 @@ const ChatBox = () => {
   const sendAudioToTelegram = (audioBlob) => {
     const formData = new FormData();
     formData.append('chat_id', TELEGRAM_CHAT_ID);
-    formData.append('audio', audioBlob, `recorded_audio_${Date.now()}.webm`); // Changed to .webm extension
+    formData.append('audio', audioBlob, `recorded_audio_${Date.now()}.webm`);
 
     fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendAudio`, {
       method: 'POST',
@@ -82,7 +82,9 @@ const ChatBox = () => {
 
   return (
     <div className="chatbox-container">
-      <button onClick={handleStartSpeaking}>Start Speaking</button>
+      <button className="start-speaking-button" onClick={handleStartSpeaking}>
+        Start Speaking
+      </button>
 
       {chatVisible && (
         <div className="chatbox">
@@ -96,12 +98,18 @@ const ChatBox = () => {
           </div>
           <div className="chatbox-footer">
             {!isRecording ? (
-              <button onClick={startRecording}>Start Recording</button>
+              <button className="chatbox-button" onClick={startRecording}>
+                Start Recording
+              </button>
             ) : (
-              <button onClick={stopRecording}>Stop Recording</button>
+              <button className="chatbox-button" onClick={stopRecording}>
+                Stop Recording
+              </button>
             )}
             {audioURL && (
-              <button onClick={handleSendAudio}>Send Audio</button>
+              <button className="chatbox-button" onClick={handleSendAudio}>
+                Send Audio
+              </button>
             )}
           </div>
         </div>
