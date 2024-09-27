@@ -59,7 +59,18 @@ const ChatBox = () => {
   };
 
   const sendAudioToTelegram = () => {
+    if (audioChunks.length === 0) {
+        console.error('No audio data available to send.');
+        return; // Exit the function early if there is no data
+    }
+
     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+    if (audioBlob.size === 0) {
+        console.error('Audio Blob is empty, not sending.');
+        return; // Exit if the blob is empty
+    }
+
     const audioUrl = URL.createObjectURL(audioBlob);
     setAudioURL(audioUrl);
 
@@ -68,23 +79,24 @@ const ChatBox = () => {
     formData.append('audio', audioBlob, `recorded_audio_${Date.now()}.webm`);
 
     fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendAudio`, {
-      method: 'POST',
-      body: formData,
+        method: 'POST',
+        body: formData,
     })
-      .then(response => response.json())
-      .then(data => {
+    .then(response => response.json())
+    .then(data => {
         if (data.ok) {
-          console.log('Audio sent successfully to Telegram!');
-          // Update conversation with sent audio
-          setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
-          setAudioChunks([]); // Clear chunks after sending
-          setAudioURL(null);
+            console.log('Audio sent successfully to Telegram!');
+            // Update conversation with sent audio
+            setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
+            setAudioChunks([]); // Clear chunks after sending
+            setAudioURL(null);
         } else {
-          console.error('Failed to send audio to Telegram:', data);
+            console.error('Failed to send audio to Telegram:', data);
         }
-      })
-      .catch(error => console.error('Error sending audio to Telegram:', error));
-  };
+    })
+    .catch(error => console.error('Error sending audio to Telegram:', error));
+};
+
 
   return (
     <div className="chatbox-container">
