@@ -21,18 +21,21 @@ const ChatBox = () => {
   };
 
   const startRecording = () => {
+    console.log('Starting recording...');  // Debugging line
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-      setMediaRecorder(recorder);
-      setAudioChunks([]); // Clear previous chunks
-      recorder.ondataavailable = (event) => {
-        setAudioChunks((prevChunks) => [...prevChunks, event.data]);
-      };
-      recorder.start();
-      setIsRecording(true);
-      setIsPaused(false);
+        const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        setMediaRecorder(recorder);
+        setAudioChunks([]); // Clear previous chunks
+        recorder.ondataavailable = (event) => {
+            console.log('Data available:', event.data);  // Debugging line
+            setAudioChunks((prevChunks) => [...prevChunks, event.data]);
+        };
+        recorder.start();
+        console.log('Recorder state:', recorder.state);  // Debugging line
+        setIsRecording(true);
+        setIsPaused(false);
     }).catch(error => console.error('Error accessing media devices:', error));
-  };
+};
 
   const pauseRecording = () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
