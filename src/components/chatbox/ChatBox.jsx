@@ -24,6 +24,7 @@ const ChatBox = () => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
       const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       setMediaRecorder(recorder);
+      setAudioChunks([]); // Clear previous chunks
       recorder.ondataavailable = (event) => {
         setAudioChunks((prevChunks) => [...prevChunks, event.data]);
       };
@@ -47,25 +48,21 @@ const ChatBox = () => {
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorder && (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')) {
+  const deleteRecording = () => {
+    if (mediaRecorder) {
       mediaRecorder.stop();
       setIsRecording(false);
       setIsPaused(false);
-
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      setAudioURL(audioUrl);
-
-      // Update conversation with recorded audio
-      setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
-      
-      // Optionally send audio to Telegram
-      // sendAudioToTelegram(audioBlob); // Comment this if you want to send only after pressing Send Audio button
+      setAudioChunks([]); // Clear the recorded chunks
+      setAudioURL(null);
     }
   };
 
-  const sendAudioToTelegram = (audioBlob) => {
+  const sendAudioToTelegram = () => {
+    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    setAudioURL(audioUrl);
+
     const formData = new FormData();
     formData.append('chat_id', TELEGRAM_CHAT_ID);
     formData.append('audio', audioBlob, `recorded_audio_${Date.now()}.webm`);
@@ -78,21 +75,15 @@ const ChatBox = () => {
       .then(data => {
         if (data.ok) {
           console.log('Audio sent successfully to Telegram!');
+          // Update conversation with sent audio
+          setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
+          setAudioChunks([]); // Clear chunks after sending
+          setAudioURL(null);
         } else {
           console.error('Failed to send audio to Telegram:', data);
         }
       })
       .catch(error => console.error('Error sending audio to Telegram:', error));
-  };
-
-  const handleSendAudio = () => {
-    if (audioURL) {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      sendAudioToTelegram(audioBlob);
-      // Reset audio URL and chunks after sending
-      setAudioURL(null);
-      setAudioChunks([]);
-    }
   };
 
   return (
@@ -122,8 +113,11 @@ const ChatBox = () => {
                 <button className="chatbox-button" onClick={pauseRecording}>
                   Pause
                 </button>
-                <button className="chatbox-button" onClick={stopRecording}>
-                  Stop Recording
+                <button className="chatbox-button" onClick={sendAudioToTelegram}>
+                  Send
+                </button>
+                <button className="chatbox-button" onClick={deleteRecording}>
+                  Delete
                 </button>
               </>
             )}
@@ -132,15 +126,13 @@ const ChatBox = () => {
                 <button className="chatbox-button" onClick={continueRecording}>
                   Continue
                 </button>
-                <button className="chatbox-button" onClick={stopRecording}>
-                  Stop Recording
+                <button className="chatbox-button" onClick={sendAudioToTelegram}>
+                  Send
+                </button>
+                <button className="chatbox-button" onClick={deleteRecording}>
+                  Delete
                 </button>
               </>
-            )}
-            {audioURL && (
-              <button className="chatbox-button" onClick={handleSendAudio}>
-                Send Audio
-              </button>
             )}
           </div>
         </div>
