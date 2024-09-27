@@ -49,7 +49,7 @@ const App = () => {
 	};
 
 	const onCheckout = () => {
-		telegram.MainButton.text = 'Sotib olish :)';
+		telegram.MainButton.text = 'Buy :)';
 		telegram.MainButton.show();
 	};
 

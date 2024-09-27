@@ -6,7 +6,7 @@ const Cart = ({ cartItems, onCheckout }) => {
 	return (
 		<div className='cart__container'>
 			<p>
-				Umumiy narx:{' '}
+				Total price:{' '}
 				{totalPrice(cartItems).toLocaleString('en-US', {
 					style: 'currency',
 					currency: 'USD',
