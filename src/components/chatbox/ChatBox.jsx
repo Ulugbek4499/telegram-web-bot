@@ -85,6 +85,16 @@ const ChatBox = () => {
       .catch(error => console.error('Error sending audio to Telegram:', error));
   };
 
+  const cancelRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setIsPaused(false);
+      setAudioChunks([]); // Clear the recorded chunks
+      setAudioURL(null);  // Clear the audio URL
+    }
+  };
+  
   const handleSendAudio = () => {
     if (audioURL) {
       const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -112,37 +122,44 @@ const ChatBox = () => {
             ))}
           </div>
           <div className="chatbox-footer">
-            {!isRecording && !audioURL && (
-              <button className="chatbox-button" onClick={startRecording}>
-                Start Recording
-              </button>
-            )}
-            {isRecording && !isPaused && (
-              <>
-                <button className="chatbox-button" onClick={pauseRecording}>
-                  Pause
-                </button>
-                <button className="chatbox-button" onClick={stopRecording}>
-                  Stop Recording
-                </button>
-              </>
-            )}
-            {isRecording && isPaused && (
-              <>
-                <button className="chatbox-button" onClick={continueRecording}>
-                  Continue
-                </button>
-                <button className="chatbox-button" onClick={stopRecording}>
-                  Stop Recording
-                </button>
-              </>
-            )}
-            {audioURL && (
-              <button className="chatbox-button" onClick={handleSendAudio}>
-                Send Audio
-              </button>
-            )}
-          </div>
+  {!isRecording && !audioURL && (
+    <button className="chatbox-button" onClick={startRecording}>
+      Start Recording
+    </button>
+  )}
+  {isRecording && !isPaused && (
+    <>
+      <button className="chatbox-button" onClick={pauseRecording}>
+        Pause
+      </button>
+      <button className="chatbox-button" onClick={stopRecording}>
+        Stop Recording
+      </button>
+      <button className="chatbox-button" onClick={cancelRecording}>
+        Cancel
+      </button>
+    </>
+  )}
+  {isRecording && isPaused && (
+    <>
+      <button className="chatbox-button" onClick={continueRecording}>
+        Continue
+      </button>
+      <button className="chatbox-button" onClick={stopRecording}>
+        Stop Recording
+      </button>
+      <button className="chatbox-button" onClick={cancelRecording}>
+        Cancel
+      </button>
+    </>
+  )}
+  {audioURL && (
+    <button className="chatbox-button" onClick={handleSendAudio}>
+      Send Audio
+    </button>
+  )}
+</div>
+
         </div>
       )}
     </div>
