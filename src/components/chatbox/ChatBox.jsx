@@ -21,21 +21,18 @@ const ChatBox = () => {
   };
 
   const startRecording = () => {
-    console.log('Starting recording...');  // Debugging line
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-        setMediaRecorder(recorder);
-        setAudioChunks([]); // Clear previous chunks
-        recorder.ondataavailable = (event) => {
-            console.log('Data available:', event.data);  // Debugging line
-            setAudioChunks((prevChunks) => [...prevChunks, event.data]);
-        };
-        recorder.start();
-        console.log('Recorder state:', recorder.state);  // Debugging line
-        setIsRecording(true);
-        setIsPaused(false);
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      setMediaRecorder(recorder);
+      setAudioChunks([]); // Clear previous chunks
+      recorder.ondataavailable = (event) => {
+        setAudioChunks((prevChunks) => [...prevChunks, event.data]);
+      };
+      recorder.start();
+      setIsRecording(true);
+      setIsPaused(false);
     }).catch(error => console.error('Error accessing media devices:', error));
-};
+  };
 
   const pauseRecording = () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
@@ -62,18 +59,7 @@ const ChatBox = () => {
   };
 
   const sendAudioToTelegram = () => {
-    if (audioChunks.length === 0) {
-        console.error('No audio data available to send.');
-        return; // Exit the function early if there is no data
-    }
-
     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-
-    if (audioBlob.size === 0) {
-        console.error('Audio Blob is empty, not sending.');
-        return; // Exit if the blob is empty
-    }
-
     const audioUrl = URL.createObjectURL(audioBlob);
     setAudioURL(audioUrl);
 
@@ -82,24 +68,31 @@ const ChatBox = () => {
     formData.append('audio', audioBlob, `recorded_audio_${Date.now()}.webm`);
 
     fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendAudio`, {
-        method: 'POST',
-        body: formData,
+      method: 'POST',
+      body: formData,
     })
     .then(response => response.json())
     .then(data => {
-        if (data.ok) {
-            console.log('Audio sent successfully to Telegram!');
-            // Update conversation with sent audio
-            setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
-            setAudioChunks([]); // Clear chunks after sending
-            setAudioURL(null);
-        } else {
-            console.error('Failed to send audio to Telegram:', data);
-        }
+      if (data.ok) {
+        console.log('Audio sent successfully to Telegram!');
+        // Update conversation with sent audio
+        setConversation((prev) => [...prev, { type: 'user', url: audioUrl }]);
+        setAudioChunks([]); // Clear chunks after sending
+        setAudioURL(null);
+      } else {
+        console.error('Failed to send audio to Telegram:', data);
+      }
     })
     .catch(error => console.error('Error sending audio to Telegram:', error));
-};
+  };
 
+  const handleSendAudio = () => {
+    if (audioChunks.length > 0) {
+      sendAudioToTelegram();
+    } else {
+      console.error('No audio data available to send.');
+    }
+  };
 
   return (
     <div className="chatbox-container">
@@ -128,7 +121,7 @@ const ChatBox = () => {
                 <button className="chatbox-button" onClick={pauseRecording}>
                   Pause
                 </button>
-                <button className="chatbox-button" onClick={sendAudioToTelegram}>
+                <button className="chatbox-button" onClick={handleSendAudio}>
                   Send
                 </button>
                 <button className="chatbox-button" onClick={deleteRecording}>
@@ -141,7 +134,7 @@ const ChatBox = () => {
                 <button className="chatbox-button" onClick={continueRecording}>
                   Continue
                 </button>
-                <button className="chatbox-button" onClick={sendAudioToTelegram}>
+                <button className="chatbox-button" onClick={handleSendAudio}>
                   Send
                 </button>
                 <button className="chatbox-button" onClick={deleteRecording}>
