@@ -3,13 +3,42 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  background-color: #000000; /* Dark background */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #1a1a1a; /* Even darker shade */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+button {
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  color: #fff;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+.heading {
+  text-align: center;
+  font-size: 32px;
+  margin-bottom: 40px;
+  color: #00ffcc; /* Light blue-green color */
 }
