@@ -9,11 +9,12 @@ const ChatBox = () => {
   const [chatVisible, setChatVisible] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
+
   const TELEGRAM_CHAT_ID = "8003145679";
-  const TELEGRAM_BOT_TOKEN = "7212413605:AAFMvGfgtilWWe9mzsrJ2Pbv35olXiVi6X0"; // Replace with your bot token
+  const TELEGRAM_BOT_TOKEN = "7212413605:AAFMvGfgtilWWe9mzsrJ2Pbv35olXiVi6X0";
 
   const handleStartSpeaking = () => {
-    const audio = new Audio("https://sanstv.ru/test/audio/test.mp3");
+    const audio = new Audio("https://sanstv.ru/test/audio/test.mp3"); //Plays once we click Start Speaking
     audio.play().catch((error) => console.error("Error playing audio:", error));
     audio.onended = () => {
       setChatVisible(true);
