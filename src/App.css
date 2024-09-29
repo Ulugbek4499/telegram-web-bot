@@ -7,7 +7,7 @@
 }
 
 .start-speaking-btn {
-  background-color: #00ffcc;
+  background-color: #d6e0de;
   color: #000;
   padding: 15px 30px;
   font-size: 18px;
@@ -20,7 +20,7 @@
   margin-top: 40px;
   width: 50px;
   height: 50px;
-  background-color: #00ffcc;
+  background-color: #e0ebe8;
   border-radius: 50%;
   animation: move 1.5s infinite alternate ease-in-out;
 }
