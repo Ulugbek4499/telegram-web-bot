@@ -13,6 +13,7 @@ const ChatBox = ({ onEndSpeaking }) => {
   const handleStartRecording = () => {
     setIsRecording(true);
     setIsListening(false);
+    setRecordedAudioBlob(null); // Reset recorded audio blob for a fresh recording
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
       const mediaRecorder = new MediaRecorder(stream);
@@ -50,7 +51,7 @@ const ChatBox = ({ onEndSpeaking }) => {
     if (recordedAudioBlob) {
       const formData = new FormData();
       formData.append("UserId", "123"); // Example user ID
-      formData.append("FileName", "recorded_audio.webm"); // Example file name
+      formData.append("FileName", `recorded_audio_${Date.now()}.webm`); // Unique file name with timestamp
       formData.append("AudioFile", recordedAudioBlob); // Send recorded audio blob
 
       // Send the audio file to the backend
@@ -66,6 +67,10 @@ const ChatBox = ({ onEndSpeaking }) => {
       console.log(data); // This will be replaced by playing the next audio question later
 
       setIsWaiting(false); // Stop waiting once the response is received
+
+      // Reset the audio blob and chunks for the next recording
+      setRecordedAudioBlob(null);
+      audioChunksRef.current = [];
     }
   };
 
