@@ -1,44 +1,72 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import "./ChatBox.css";
 
 const ChatBox = ({ onEndSpeaking }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
+  const [recordedAudioBlob, setRecordedAudioBlob] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
+  // Start recording user voice
   const handleStartRecording = () => {
     setIsRecording(true);
     setIsListening(false);
-    // Record user voice
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      audioChunksRef.current = []; // Clear any previous audio chunks
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data); // Save the audio data chunks
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+        setRecordedAudioBlob(audioBlob); // Set the recorded audio blob
+      };
+
+      mediaRecorder.start(); // Start recording
+    });
   };
 
-  // const handleStopRecording = () => {
-  //   setIsRecording(false);
-  //   setIsWaiting(true);
-  //   // Send voice to backend and wait for response
-  // };
-
+  // Stop recording and create audio blob
   const handleStopRecording = async () => {
     setIsRecording(false);
     setIsWaiting(true);
 
-    // Create form data to send the audio file
-    const formData = new FormData();
-    formData.append("UserId", "123"); // Example user ID
-    formData.append("FileName", "recorded_audio.webm"); // Example file name
-    formData.append("AudioFile", recordedAudioBlob); // Your recorded audio blob
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop(); // Stop the recording
+    }
+  };
 
-    // Send the audio file to the backend
-    const response = await fetch(
-      "https://localhost:7035/api/Speech/submit-audio",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+  // Send audio blob to backend
+  const handleSendAudio = async () => {
+    if (recordedAudioBlob) {
+      const formData = new FormData();
+      formData.append("UserId", "123"); // Example user ID
+      formData.append("FileName", "recorded_audio.webm"); // Example file name
+      formData.append("AudioFile", recordedAudioBlob); // Send recorded audio blob
 
-    const data = await response.text();
-    console.log(data); // This will be replaced by playing the next audio question later
+      // Send the audio file to the backend
+      const response = await fetch(
+        "https://localhost:7035/api/speech/submit-audio",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.text();
+      console.log(data); // This will be replaced by playing the next audio question later
+
+      setIsWaiting(false); // Stop waiting once the response is received
+    }
   };
 
   const handleEndSpeaking = () => {
@@ -77,6 +105,12 @@ const ChatBox = ({ onEndSpeaking }) => {
           <div className="waiting-shape"></div>
           <p>Waiting for the next question...</p>
         </>
+      )}
+
+      {recordedAudioBlob && (
+        <button className="send-audio-btn" onClick={handleSendAudio}>
+          Send Audio
+        </button>
       )}
 
       <button className="end-btn" onClick={handleEndSpeaking}>
