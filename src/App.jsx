@@ -14,11 +14,9 @@ const App = () => {
 
     // Call the backend to start the session
     const response = await fetch(
-      "https://localhost:7035/api/Speech/start-session"
+      "https://localhost:7035/api/speech/start-session"
     );
     const data = await response.text();
-
-    // Display the received question (for testing purposes)
     console.log(data); // You should replace this with playing the audio question later
   };
 
