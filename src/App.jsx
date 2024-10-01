@@ -5,9 +5,21 @@ import ChatBox from "./components/chatbox/ChatBox";
 const App = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  const handleStartSpeaking = () => {
+  // const handleStartSpeaking = () => {
+  //   setIsSpeaking(true);
+  //   // Call backend to fetch voice question
+  // };
+  const handleStartSpeaking = async () => {
     setIsSpeaking(true);
-    // Call backend to fetch voice question
+
+    // Call the backend to start the session
+    const response = await fetch(
+      "https://localhost:7035/api/Speech/start-session"
+    );
+    const data = await response.text();
+
+    // Display the received question (for testing purposes)
+    console.log(data); // You should replace this with playing the audio question later
   };
 
   const handleEndSpeaking = () => {

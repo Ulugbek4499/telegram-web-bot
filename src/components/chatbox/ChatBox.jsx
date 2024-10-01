@@ -12,10 +12,33 @@ const ChatBox = ({ onEndSpeaking }) => {
     // Record user voice
   };
 
-  const handleStopRecording = () => {
+  // const handleStopRecording = () => {
+  //   setIsRecording(false);
+  //   setIsWaiting(true);
+  //   // Send voice to backend and wait for response
+  // };
+
+  const handleStopRecording = async () => {
     setIsRecording(false);
     setIsWaiting(true);
-    // Send voice to backend and wait for response
+
+    // Create form data to send the audio file
+    const formData = new FormData();
+    formData.append("UserId", "123"); // Example user ID
+    formData.append("FileName", "recorded_audio.webm"); // Example file name
+    formData.append("AudioFile", recordedAudioBlob); // Your recorded audio blob
+
+    // Send the audio file to the backend
+    const response = await fetch(
+      "https://localhost:7035/api/Speech/submit-audio",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await response.text();
+    console.log(data); // This will be replaced by playing the next audio question later
   };
 
   const handleEndSpeaking = () => {
