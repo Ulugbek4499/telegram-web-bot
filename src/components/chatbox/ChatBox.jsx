@@ -16,9 +16,11 @@ const ChatBox = ({ onEndSpeaking }) => {
     setRecordedAudioBlob(null); // Reset recorded audio blob for a fresh recording
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      // Use 'audio/webm; codecs=opus' or 'audio/ogg; codecs=opus'
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "audio/wav",
-      }); // Set the MIME type to WAV
+        mimeType: "audio/ogg", // Use "audio/ogg" format instead of "audio/webm"
+      });
+
       mediaRecorderRef.current = mediaRecorder;
 
       audioChunksRef.current = []; // Clear any previous audio chunks
@@ -29,7 +31,7 @@ const ChatBox = ({ onEndSpeaking }) => {
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/wav", // Ensure the audio blob is WAV format
+          type: "audio/webm; codecs=opus", // Ensure the audio blob has the correct MIME type
         });
         setRecordedAudioBlob(audioBlob); // Set the recorded audio blob
       };
@@ -48,16 +50,12 @@ const ChatBox = ({ onEndSpeaking }) => {
     }
   };
 
-  // Send audio blob to backend
   const handleSendAudio = async () => {
     if (recordedAudioBlob) {
       const formData = new FormData();
       formData.append("UserId", "123"); // Example user ID
       formData.append("FileName", `recorded_audio_${Date.now()}.webm`); // Unique file name with timestamp
       formData.append("AudioFile", recordedAudioBlob); // Send recorded audio blob
-
-      console.log("Recorded Audio Blob:", recordedAudioBlob);
-      console.log("Form Data:", formData.get("AudioFile"));
 
       // Send the audio file to the backend
       const response = await fetch(
