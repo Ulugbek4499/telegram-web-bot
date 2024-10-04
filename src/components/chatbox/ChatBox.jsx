@@ -54,6 +54,10 @@ const ChatBox = ({ onEndSpeaking }) => {
       formData.append("FileName", `recorded_audio_${Date.now()}.webm`); // Unique file name with timestamp
       formData.append("AudioFile", recordedAudioBlob); // Send recorded audio blob
 
+      // Add console logs to verify the data
+      console.log("Recorded Audio Blob:", recordedAudioBlob); // Logs the blob
+      console.log("Form Data:", formData); // Logs the form data
+
       // Send the audio file to the backend
       const response = await fetch(
         "https://localhost:7035/api/speech/submit-audio",
