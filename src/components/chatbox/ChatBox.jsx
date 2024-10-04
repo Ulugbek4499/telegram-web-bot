@@ -16,7 +16,9 @@ const ChatBox = ({ onEndSpeaking }) => {
     setRecordedAudioBlob(null); // Reset recorded audio blob for a fresh recording
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/wav",
+      }); // Set the MIME type to WAV
       mediaRecorderRef.current = mediaRecorder;
 
       audioChunksRef.current = []; // Clear any previous audio chunks
@@ -27,7 +29,7 @@ const ChatBox = ({ onEndSpeaking }) => {
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
+          type: "audio/wav", // Ensure the audio blob is WAV format
         });
         setRecordedAudioBlob(audioBlob); // Set the recorded audio blob
       };
