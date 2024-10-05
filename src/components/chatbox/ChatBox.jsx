@@ -16,7 +16,10 @@ const ChatBox = ({ onEndSpeaking }) => {
     setRecordedAudioBlob(null); // Reset recorded audio blob for a fresh recording
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/wav", // Ensure WAV format (PCM) or use 'audio/webm'
+        audioBitsPerSecond: 16000, // Set the correct bitrate
+      });
       mediaRecorderRef.current = mediaRecorder;
 
       audioChunksRef.current = []; // Clear any previous audio chunks
@@ -51,7 +54,6 @@ const ChatBox = ({ onEndSpeaking }) => {
     if (recordedAudioBlob) {
       const formData = new FormData();
       formData.append("UserId", "123");
-      formData.append("FileName", `recorded_audio_${Date.now()}.webm`);
       formData.append("AudioFile", recordedAudioBlob);
 
       const response = await fetch(
