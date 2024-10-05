@@ -17,9 +17,10 @@ const ChatBox = ({ onEndSpeaking }) => {
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "audio/wav", // Change from 'audio/webm' to 'audio/wav'
-        audioBitsPerSecond: 16000, // 16kHz sample rate
+        mimeType: "audio/webm", // Use WebM format, which is supported by most browsers
+        audioBitsPerSecond: 16000, // Set the correct bitrate
       });
+
       mediaRecorderRef.current = mediaRecorder;
 
       audioChunksRef.current = []; // Clear any previous audio chunks
