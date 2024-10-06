@@ -5,10 +5,6 @@ import ChatBox from "./components/chatbox/ChatBox";
 const App = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // const handleStartSpeaking = () => {
-  //   setIsSpeaking(true);
-  //   // Call backend to fetch voice question
-  // };
   const handleStartSpeaking = async () => {
     setIsSpeaking(true);
 
