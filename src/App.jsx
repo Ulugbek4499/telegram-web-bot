@@ -4,6 +4,7 @@ import "./App.css";
 const App = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [recordedAudioBlob, setRecordedAudioBlob] = useState(null);
+  const [transcribedText, setTranscribedText] = useState(""); // State to store transcribed text
 
   const handleStartRecording = async () => {
     setIsSpeaking(true);
@@ -44,7 +45,7 @@ const App = () => {
       );
 
       const data = await response.json();
-      console.log("Transcribed Text:", data.transcribedText); // Log the transcription in console
+      setTranscribedText(data.transcribedText); // Set the transcribed text to state to display it on the UI
     }
   };
 
@@ -60,6 +61,14 @@ const App = () => {
         <button className="send-audio-btn" onClick={handleSendAudio}>
           Send Audio
         </button>
+      )}
+
+      {/* Display the transcribed text to users */}
+      {transcribedText && (
+        <div className="transcribed-text">
+          <h3>Transcribed Text:</h3>
+          <p>{transcribedText}</p>
+        </div>
       )}
     </div>
   );
