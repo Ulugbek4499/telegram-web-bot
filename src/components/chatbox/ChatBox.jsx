@@ -52,9 +52,10 @@ const ChatBox = ({ onEndSpeaking }) => {
   // Send audio blob to backend
   const handleSendAudio = async () => {
     if (recordedAudioBlob) {
+      const wavBlob = await webmToWav(recordedAudioBlob);
       const formData = new FormData();
-      formData.append("UserId", "123"); // Example user ID
-      formData.append("AudioFile", recordedAudioBlob); // Send recorded audio blob
+      formData.append("UserId", "123");
+      formData.append("AudioFile", wavBlob); // Send WAV format
 
       try {
         const response = await fetch(
@@ -65,22 +66,45 @@ const ChatBox = ({ onEndSpeaking }) => {
           }
         );
 
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.statusText}`);
-        }
-
         const data = await response.json();
         console.log(`Transcribed text: ${data.transcribedText}`);
-        setIsWaiting(false);
-
-        // Reset the audio blob and chunks for the next recording
-        setRecordedAudioBlob(null);
-        audioChunksRef.current = [];
       } catch (error) {
-        console.error("Error receiving audio response", error); // Log the error for debugging
+        console.error("Error receiving audio response", error);
       }
     }
   };
+
+  function webmToWav(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        const audioContext = new AudioContext();
+        audioContext.decodeAudioData(reader.result, function (buffer) {
+          audioContext.close().then(() => {
+            const wavBlob = bufferToWaveBlob(buffer);
+            resolve(wavBlob);
+          });
+        });
+      };
+      reader.readAsArrayBuffer(blob);
+    });
+  }
+
+  // Convert audio buffer to WAV blob
+  function bufferToWaveBlob(buffer) {
+    const length = buffer.length * 2;
+    const wav = new Uint8Array(44 + length);
+    // Write WAV header here (you can find many open-source scripts online to do this)
+    // ...
+
+    // Append audio buffer data to WAV blob
+    for (let i = 0; i < buffer.length; i++) {
+      // Convert buffer to WAV format
+      // ...
+    }
+
+    return new Blob([wav], { type: "audio/wav" });
+  }
 
   const handleEndSpeaking = () => {
     setIsRecording(false);
