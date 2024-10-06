@@ -16,11 +16,7 @@ const ChatBox = ({ onEndSpeaking }) => {
     setRecordedAudioBlob(null); // Reset recorded audio blob for a fresh recording
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "audio/webm", // Use WebM format, which is supported by most browsers
-        audioBitsPerSecond: 16000, // Set the correct bitrate
-      });
-
+      const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
       audioChunksRef.current = []; // Clear any previous audio chunks
@@ -54,9 +50,11 @@ const ChatBox = ({ onEndSpeaking }) => {
   const handleSendAudio = async () => {
     if (recordedAudioBlob) {
       const formData = new FormData();
-      formData.append("UserId", "123");
-      formData.append("AudioFile", recordedAudioBlob);
+      formData.append("UserId", "123"); // Example user ID
+      formData.append("FileName", recorded_audio_${Date.now()}.webm); // Unique file name with timestamp
+      formData.append("AudioFile", recordedAudioBlob); // Send recorded audio blob
 
+      // Send the audio file to the backend
       const response = await fetch(
         "https://localhost:7035/api/speech/submit-audio",
         {
@@ -65,15 +63,12 @@ const ChatBox = ({ onEndSpeaking }) => {
         }
       );
 
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audio.play();
-      } else {
-        console.log("Error receiving audio response");
-      }
+      const data = await response.text();
+      console.log(data); // This will be replaced by playing the next audio question later
 
+      setIsWaiting(false); // Stop waiting once the response is received
+
+      // Reset the audio blob and chunks for the next recording
       setRecordedAudioBlob(null);
       audioChunksRef.current = [];
     }
