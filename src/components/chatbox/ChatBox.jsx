@@ -65,16 +65,19 @@ const ChatBox = ({ onEndSpeaking }) => {
           }
         );
 
-        const data = await response.json();
-        console.log(`Transcribed text: ${data.transcribedText}`); // Display transcribed text in the console
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.statusText}`);
+        }
 
-        setIsWaiting(false); // Stop waiting once the response is received
+        const data = await response.json();
+        console.log(`Transcribed text: ${data.transcribedText}`);
+        setIsWaiting(false);
 
         // Reset the audio blob and chunks for the next recording
         setRecordedAudioBlob(null);
         audioChunksRef.current = [];
       } catch (error) {
-        console.error("Error receiving audio response", error);
+        console.error("Error receiving audio response", error); // Log the error for debugging
       }
     }
   };
