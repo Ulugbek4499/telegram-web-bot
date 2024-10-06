@@ -51,7 +51,7 @@ const ChatBox = ({ onEndSpeaking }) => {
     if (recordedAudioBlob) {
       const formData = new FormData();
       formData.append("UserId", "123"); // Example user ID
-      formData.append("FileName", `recorded_audio_${Date.now()}.webm`); // Unique file name with timestamp
+      formData.append("FileName", `recorded_audio_${Date.now()}.webm`); // Ensure this is correctly included
       formData.append("AudioFile", recordedAudioBlob); // Send recorded audio blob
 
       // Send the audio file to the backend
