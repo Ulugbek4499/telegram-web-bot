@@ -51,26 +51,28 @@ const ChatBox = ({ onEndSpeaking }) => {
     if (recordedAudioBlob) {
       const formData = new FormData();
       formData.append("UserId", "123"); // Example user ID
-      formData.append("FileName", `recorded_audio_${Date.now()}.webm`); // Ensure this is correctly included
       formData.append("AudioFile", recordedAudioBlob); // Send recorded audio blob
 
-      // Send the audio file to the backend
-      const response = await fetch(
-        "https://localhost:7035/api/speech/submit-audio",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      try {
+        const response = await fetch(
+          "https://localhost:7035/api/speech/submit-audio",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
 
-      const data = await response.json();
-      console.log(`Transcribed text: ${data.transcribedText}`); // Display transcribed text in the console
+        const data = await response.json();
+        console.log(`Transcribed text: ${data.transcribedText}`); // Display transcribed text in the console
 
-      setIsWaiting(false); // Stop waiting once the response is received
+        setIsWaiting(false); // Stop waiting once the response is received
 
-      // Reset the audio blob and chunks for the next recording
-      setRecordedAudioBlob(null);
-      audioChunksRef.current = [];
+        // Reset the audio blob and chunks for the next recording
+        setRecordedAudioBlob(null);
+        audioChunksRef.current = [];
+      } catch (error) {
+        console.error("Error receiving audio response", error);
+      }
     }
   };
 
