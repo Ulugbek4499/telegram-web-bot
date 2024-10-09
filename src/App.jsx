@@ -6,11 +6,9 @@ const App = () => {
   const [questionAudioUrl, setQuestionAudioUrl] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [recordedChunks, setRecordedChunks] = useState([]);
-  //const [audioRef] = useState(useRef(null));
   const audioRef = useRef(null);
+  const recordedChunksRef = useRef([]);
 
-  // Handle "Start Speaking" button click
   const handleStartSpeaking = async () => {
     setCurrentStep("playingQuestion");
 
@@ -41,25 +39,20 @@ const App = () => {
   // Handle "Start Answering" button click
   const handleStartAnswering = async () => {
     setCurrentStep("recordingAnswer");
-    setRecordedChunks([]);
+    recordedChunksRef.current = [];
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const recorder = new MediaRecorder(stream);
     setMediaRecorder(recorder);
 
-    const chunks = [];
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        chunks.push(event.data);
+        recordedChunksRef.current.push(event.data);
       }
     };
 
     recorder.start();
     setIsRecording(true);
-
-    recorder.onstop = () => {
-      setRecordedChunks(chunks);
-    };
   };
 
   // Handle "Pause" button click
@@ -86,50 +79,61 @@ const App = () => {
       mediaRecorder.stop();
       setMediaRecorder(null);
     }
-    setRecordedChunks([]);
+    recordedChunksRef.current = [];
     setIsRecording(false);
     setCurrentStep("waitingToAnswer");
   };
 
   // Handle "Send" button click
-  const handleSendRecording = () => {
+  const handleSendRecording = async () => {
     if (mediaRecorder) {
       setIsRecording(false);
       setCurrentStep("sending");
 
-      mediaRecorder.onstop = async () => {
-        // Combine recorded chunks into a blob
-        const audioBlob = new Blob(recordedChunks, { type: "audio/webm" });
-
-        // Send the recorded audio to the backend and get the next question
-        const formData = new FormData();
-        formData.append("audio", audioBlob, "answer.webm");
-
-        const response = await fetch(
-          "https://localhost:7035/api/speech/submit-answer",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        // Handle the response
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        setQuestionAudioUrl(url);
-
-        // Play the next question
-        if (audioRef.current) {
-          audioRef.current.src = url;
-          audioRef.current.play();
-
-          audioRef.current.onended = () => {
-            setCurrentStep("waitingToAnswer");
-          };
-        }
-      };
+      // Create a Promise that resolves when mediaRecorder stops
+      const stopped = new Promise((resolve) => {
+        mediaRecorder.onstop = resolve;
+      });
 
       mediaRecorder.stop();
+
+      // Wait for the mediaRecorder to stop
+      await stopped;
+
+      // Combine recorded chunks into a blob
+      const audioBlob = new Blob(recordedChunksRef.current, {
+        type: "audio/webm",
+      });
+
+      // Debug: Log the size of the audio blob
+      console.log("Audio Blob Size:", audioBlob.size);
+
+      // Send the recorded audio to the backend and get the next question
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "answer.webm");
+
+      const response = await fetch(
+        "https://localhost:7035/api/speech/submit-answer",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      // Handle the response
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setQuestionAudioUrl(url);
+
+      // Play the next question
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        audioRef.current.play();
+
+        audioRef.current.onended = () => {
+          setCurrentStep("waitingToAnswer");
+        };
+      }
     }
   };
 
@@ -138,7 +142,7 @@ const App = () => {
     // Reset the app to initial state
     setCurrentStep("start");
     setQuestionAudioUrl(null);
-    setRecordedChunks([]);
+    recordedChunksRef.current = [];
     setIsRecording(false);
     if (mediaRecorder) {
       mediaRecorder.stop();
