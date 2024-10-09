@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 
 const App = () => {
@@ -8,6 +8,38 @@ const App = () => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const audioRef = useRef(null);
   const recordedChunksRef = useRef([]);
+
+  // useEffect to play the initial question
+  useEffect(() => {
+    if (
+      currentStep === "playingQuestion" &&
+      audioRef.current &&
+      questionAudioUrl
+    ) {
+      audioRef.current.src = questionAudioUrl;
+      audioRef.current.play();
+
+      audioRef.current.onended = () => {
+        setCurrentStep("waitingToAnswer");
+      };
+    }
+  }, [currentStep, questionAudioUrl]);
+
+  // useEffect to play the next question
+  useEffect(() => {
+    if (
+      currentStep === "playingNextQuestion" &&
+      audioRef.current &&
+      questionAudioUrl
+    ) {
+      audioRef.current.src = questionAudioUrl;
+      audioRef.current.play();
+
+      audioRef.current.onended = () => {
+        setCurrentStep("waitingToAnswer");
+      };
+    }
+  }, [currentStep, questionAudioUrl]);
 
   const handleStartSpeaking = async () => {
     setCurrentStep("playingQuestion");
@@ -23,17 +55,7 @@ const App = () => {
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     setQuestionAudioUrl(url);
-
-    // Play the question audio
-    if (audioRef.current) {
-      audioRef.current.src = url;
-      audioRef.current.play();
-
-      // After audio finishes, move to next step
-      audioRef.current.onended = () => {
-        setCurrentStep("waitingToAnswer");
-      };
-    }
+    // The audio will be played in useEffect
   };
 
   // Handle "Start Answering" button click
@@ -131,15 +153,7 @@ const App = () => {
   // Handle "Play Next Question" button click
   const handlePlayNextQuestion = () => {
     setCurrentStep("playingNextQuestion");
-
-    if (audioRef.current) {
-      audioRef.current.src = questionAudioUrl;
-      audioRef.current.play();
-
-      audioRef.current.onended = () => {
-        setCurrentStep("waitingToAnswer");
-      };
-    }
+    // The audio will be played in useEffect
   };
 
   const handleEndSpeaking = () => {
@@ -157,6 +171,8 @@ const App = () => {
   return (
     <div className="container">
       <h1 className="heading">Tarteeb Speech</h1>
+
+      <audio ref={audioRef} />
 
       {currentStep === "start" && (
         <button className="start-speaking-btn" onClick={handleStartSpeaking}>
