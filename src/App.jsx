@@ -7,7 +7,7 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
-  const [audioRef] = useState(useRef(null));
+  const audioRef = useRef(null);
 
   // Handle "Start Speaking" button click
   const handleStartSpeaking = async () => {
@@ -46,14 +46,19 @@ const App = () => {
     const recorder = new MediaRecorder(stream);
     setMediaRecorder(recorder);
 
+    const chunks = [];
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        setRecordedChunks((prev) => prev.concat(event.data));
+        chunks.push(event.data);
       }
     };
 
     recorder.start();
     setIsRecording(true);
+
+    recorder.onstop = () => {
+      setRecordedChunks(chunks);
+    };
   };
 
   // Handle "Pause" button click
@@ -88,40 +93,48 @@ const App = () => {
   // Handle "Send" button click
   const handleSendRecording = async () => {
     if (mediaRecorder) {
-      mediaRecorder.stop();
       setIsRecording(false);
       setCurrentStep("sending");
-    }
 
-    // Combine recorded chunks into a blob
-    const audioBlob = new Blob(recordedChunks, { type: "audio/webm" });
+      // Create a Promise that resolves when mediaRecorder stops
+      const stopped = new Promise((resolve) => {
+        mediaRecorder.onstop = resolve;
+      });
 
-    // Send the recorded audio to the backend and get the next question
-    const formData = new FormData();
-    formData.append("audio", audioBlob, "answer.webm");
+      mediaRecorder.stop();
 
-    const response = await fetch(
-      "https://localhost:7035/api/speech/submit-answer",
-      {
-        method: "POST",
-        body: formData,
+      // Wait for the mediaRecorder to stop
+      await stopped;
+
+      // Combine recorded chunks into a blob
+      const audioBlob = new Blob(recordedChunks, { type: "audio/webm" });
+
+      // Send the recorded audio to the backend and get the next question
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "answer.webm");
+
+      const response = await fetch(
+        "https://localhost:7035/api/speech/submit-answer",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      // Handle the response
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setQuestionAudioUrl(url);
+
+      // Play the next question
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        audioRef.current.play();
+
+        audioRef.current.onended = () => {
+          setCurrentStep("waitingToAnswer");
+        };
       }
-    );
-
-    // Expect the response to be the next question audio
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    setQuestionAudioUrl(url);
-
-    // Play the next question
-    if (audioRef.current) {
-      audioRef.current.src = url;
-      audioRef.current.play();
-
-      // After audio finishes, move to next step
-      audioRef.current.onended = () => {
-        setCurrentStep("waitingToAnswer");
-      };
     }
   };
 
