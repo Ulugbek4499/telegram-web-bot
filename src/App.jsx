@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import "./App.css";
 
 const App = () => {
@@ -7,7 +7,8 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
-  const [audioRef] = useState(useRef(null));
+  //const [audioRef] = useState(useRef(null));
+  const audioRef = useRef(null);
 
   // Handle "Start Speaking" button click
   const handleStartSpeaking = async () => {
