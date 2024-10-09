@@ -45,12 +45,12 @@ const App = () => {
 
   return (
     <div className="container">
-      <h1 className="heading">Speech-to-GPT-to-Speech App</h1>
+      <h1 className="heading">Tarteeb Speech</h1>
 
       {/* Recording and processing */}
       {!isSpeaking && (
         <button className="start-recording-btn" onClick={handleStartRecording}>
-          Start Recording and Ask ChatGPT
+          Start Speaking
         </button>
       )}
 
