@@ -3,12 +3,9 @@ import "./App.css";
 
 const App = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [recordedAudioBlob, setRecordedAudioBlob] = useState(null);
-  const [transcribedText, setTranscribedText] = useState(""); // State to store transcribed text
-  const [enteredText, setEnteredText] = useState(""); // State to store user-entered text for TTS
-  const [audioUrl, setAudioUrl] = useState(null); // State to store the audio URL for playing TTS response
+  const [audioUrl, setAudioUrl] = useState(null); // For storing the GPT response speech audio URL
 
-  // Start recording user audio for Speech-to-Text
+  // Start recording user audio for Speech-to-Text and ChatGPT Response
   const handleStartRecording = async () => {
     setIsSpeaking(true);
 
@@ -22,21 +19,10 @@ const App = () => {
 
     mediaRecorder.onstop = async () => {
       const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-      setRecordedAudioBlob(audioBlob); // Save the recorded audio blob
-    };
 
-    mediaRecorder.start();
-
-    setTimeout(() => {
-      mediaRecorder.stop(); // Stop recording after 5 seconds
-    }, 5000);
-  };
-
-  // Send audio for Speech-to-Text
-  const handleSendAudio = async () => {
-    if (recordedAudioBlob) {
+      // Send the recorded audio to the backend and get the response as speech
       const formData = new FormData();
-      formData.append("audio", recordedAudioBlob, "audio.webm");
+      formData.append("audio", audioBlob, "audio.webm");
 
       const response = await fetch(
         "https://localhost:7035/api/speech/submit-audio",
@@ -46,72 +32,32 @@ const App = () => {
         }
       );
 
-      const data = await response.json();
-      setTranscribedText(data.transcribedText); // Set the transcribed text
-    }
-  };
+      const blob = await response.blob(); // Receive audio as a blob
+      const url = URL.createObjectURL(blob); // Create URL for the audio file
+      setAudioUrl(url); // Set the URL to state to allow playback
+    };
 
-  // Send entered text for Text-to-Speech
-  const handleTextToSpeech = async () => {
-    const response = await fetch(
-      "https://localhost:7035/api/speech/text-to-speech",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: enteredText }),
-      }
-    );
-
-    const blob = await response.blob(); // Receive audio as a blob
-    const url = URL.createObjectURL(blob); // Create URL for the audio file
-    setAudioUrl(url); // Set the URL to state to allow playback
+    mediaRecorder.start();
+    setTimeout(() => {
+      mediaRecorder.stop(); // Stop recording after 5 seconds
+    }, 5000);
   };
 
   return (
     <div className="container">
-      <h1 className="heading">
-        Speech App (Text-to-Speech and Speech-to-Text)
-      </h1>
+      <h1 className="heading">Speech-to-GPT-to-Speech App</h1>
 
-      {/* Speech-to-Text Section */}
-      <h2>Speech-to-Text</h2>
+      {/* Recording and processing */}
       {!isSpeaking && (
         <button className="start-recording-btn" onClick={handleStartRecording}>
-          Start Recording
-        </button>
-      )}
-      {recordedAudioBlob && (
-        <button className="send-audio-btn" onClick={handleSendAudio}>
-          Send Audio
+          Start Recording and Ask ChatGPT
         </button>
       )}
 
-      {/* Display the transcribed text */}
-      {transcribedText && (
-        <div className="transcribed-text">
-          <h3>Transcribed Text:</h3>
-          <p>{transcribedText}</p>
-        </div>
-      )}
-
-      {/* Text-to-Speech Section */}
-      <h2>Text-to-Speech</h2>
-      <textarea
-        className="text-input"
-        placeholder="Enter text to convert to speech..."
-        value={enteredText}
-        onChange={(e) => setEnteredText(e.target.value)}
-      />
-      <button className="text-to-speech-btn" onClick={handleTextToSpeech}>
-        Convert Text to Speech
-      </button>
-
-      {/* Play the generated speech audio */}
+      {/* Play the generated speech response */}
       {audioUrl && (
         <div className="audio-player">
-          <h3>Generated Speech:</h3>
+          <h3>GPT Response:</h3>
           <audio controls>
             <source src={audioUrl} type="audio/mp3" />
             Your browser does not support the audio element.
