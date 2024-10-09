@@ -92,50 +92,44 @@ const App = () => {
   };
 
   // Handle "Send" button click
-  const handleSendRecording = async () => {
+  const handleSendRecording = () => {
     if (mediaRecorder) {
       setIsRecording(false);
       setCurrentStep("sending");
 
-      // Create a Promise that resolves when mediaRecorder stops
-      const stopped = new Promise((resolve) => {
-        mediaRecorder.onstop = resolve;
-      });
+      mediaRecorder.onstop = async () => {
+        // Combine recorded chunks into a blob
+        const audioBlob = new Blob(recordedChunks, { type: "audio/webm" });
+
+        // Send the recorded audio to the backend and get the next question
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "answer.webm");
+
+        const response = await fetch(
+          "https://localhost:7035/api/speech/submit-answer",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        // Handle the response
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setQuestionAudioUrl(url);
+
+        // Play the next question
+        if (audioRef.current) {
+          audioRef.current.src = url;
+          audioRef.current.play();
+
+          audioRef.current.onended = () => {
+            setCurrentStep("waitingToAnswer");
+          };
+        }
+      };
 
       mediaRecorder.stop();
-
-      // Wait for the mediaRecorder to stop
-      await stopped;
-
-      // Combine recorded chunks into a blob
-      const audioBlob = new Blob(recordedChunks, { type: "audio/webm" });
-
-      // Send the recorded audio to the backend and get the next question
-      const formData = new FormData();
-      formData.append("audio", audioBlob, "answer.webm");
-
-      const response = await fetch(
-        "https://localhost:7035/api/speech/submit-answer",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      // Handle the response
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setQuestionAudioUrl(url);
-
-      // Play the next question
-      if (audioRef.current) {
-        audioRef.current.src = url;
-        audioRef.current.play();
-
-        audioRef.current.onended = () => {
-          setCurrentStep("waitingToAnswer");
-        };
-      }
     }
   };
 
