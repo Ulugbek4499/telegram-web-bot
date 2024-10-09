@@ -7,7 +7,7 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
-  const audioRef = useRef(null);
+  const [audioRef] = useState(useRef(null));
 
   // Handle "Start Speaking" button click
   const handleStartSpeaking = async () => {
