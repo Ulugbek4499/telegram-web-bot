@@ -6,74 +6,29 @@
   height: 100%;
 }
 
-.start-speaking-btn {
+.heading {
+  text-align: center;
+  font-size: 32px;
+  margin-bottom: 40px;
+  color: #dfe9e7; /* Light blue-green color */
+}
+
+button {
   background-color: #d6e0de;
   color: #000;
   padding: 15px 30px;
   font-size: 18px;
-  margin-top: 20px;
+  margin: 10px;
   border-radius: 5px;
   border: none;
+  cursor: pointer;
 }
 
-.moving-shape {
-  margin-top: 40px;
-  width: 50px;
-  height: 50px;
-  background-color: #e0ebe8;
-  border-radius: 50%;
-  animation: move 1.5s infinite alternate ease-in-out;
+button:hover {
+  opacity: 0.8;
 }
 
-@keyframes move {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(200px);
-  }
-}
-
-.listening-shape {
-  margin-top: 40px;
-  width: 50px;
-  height: 50px;
-  background-color: #007bff;
-  border-radius: 50%;
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.record-btn,
-.stop-btn,
-.end-btn {
-  background-color: #007bff;
-  color: #fff;
-  margin-top: 20px;
-}
-
-.waiting-shape {
-  margin-top: 40px;
-  width: 50px;
-  height: 50px;
-  background-color: #ffa500;
-  border-radius: 50%;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
+p {
+  font-size: 18px;
+  color: #dfe9e7;
 }
