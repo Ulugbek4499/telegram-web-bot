@@ -54,8 +54,6 @@ const App = () => {
     recorder.start();
     setIsRecording(true);
   };
-
-  // Handle "Pause" button click
   const handlePauseRecording = () => {
     if (mediaRecorder && isRecording) {
       mediaRecorder.pause();
@@ -125,19 +123,25 @@ const App = () => {
       const url = URL.createObjectURL(blob);
       setQuestionAudioUrl(url);
 
-      // Play the next question
-      if (audioRef.current) {
-        audioRef.current.src = url;
-        audioRef.current.play();
-
-        audioRef.current.onended = () => {
-          setCurrentStep("waitingToAnswer");
-        };
-      }
+      // Update the current step to show "Play Next Question" button
+      setCurrentStep("nextQuestionReady");
     }
   };
 
-  // Handle "End Speaking" button click
+  // Handle "Play Next Question" button click
+  const handlePlayNextQuestion = () => {
+    setCurrentStep("playingNextQuestion");
+
+    if (audioRef.current) {
+      audioRef.current.src = questionAudioUrl;
+      audioRef.current.play();
+
+      audioRef.current.onended = () => {
+        setCurrentStep("waitingToAnswer");
+      };
+    }
+  };
+
   const handleEndSpeaking = () => {
     // Reset the app to initial state
     setCurrentStep("start");
@@ -178,6 +182,25 @@ const App = () => {
           <button className="end-speaking-btn" onClick={handleEndSpeaking}>
             End Speaking
           </button>
+        </div>
+      )}
+
+      {currentStep === "nextQuestionReady" && (
+        <div>
+          <p>The next question is ready.</p>
+          <button
+            className="play-next-question-btn"
+            onClick={handlePlayNextQuestion}
+          >
+            Play Next Question
+          </button>
+        </div>
+      )}
+
+      {currentStep === "playingNextQuestion" && (
+        <div>
+          <p>Playing next question...</p>
+          <audio ref={audioRef} />
         </div>
       )}
 
